@@ -2,9 +2,30 @@
   "name": "stackstarter",
   "version": "1.0.0",
   "author": {
-    "name": "Marvin Janssen",
-    "url": "https://marvinjanssen.me/"
+    "name": "AdekunleBamz",
+    "url": "https://github.com/AdekunleBamz"
   },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AdekunleBamz/stackstarter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AdekunleBamz/stackstarter/issues"
+  },
+  "homepage": "https://github.com/AdekunleBamz/stackstarter#readme",
+  "keywords": [
+    "stacks",
+    "clarity",
+    "blockchain",
+    "crowdfunding",
+    "smart-contracts",
+    "stx",
+    "decentralized",
+    "fundraising",
+    "campaigns",
+    "tiers"
+  ],
   "engines": {
     "node": ">=10"
   },
