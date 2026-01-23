@@ -1,4 +1,4 @@
-# Stackstarter
+<!-- StackStarter contribution -->n# Stackstarter
 
 Stackstarter is a Clarity smart contract for crowdfunding on the STX blockchain. When a campaign is created, the fundraiser sets a goal in STX and a duration in blocks. In order for a campaign to be successfully funded, the campaign needs to receive investments matching or exceeding the funding goal before the target block-height is reached. The fundraiser can then collect the funds.
 
