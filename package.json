@@ -4,7 +4,7 @@
   "author": {
     "name": "Marvin Janssen",
     "url": "https://marvinjanssen.me/"
-  },
+  "homepage": "https://github.com/AdekunleBamz/stackstarter",  },
   "engines": {
     "node": ">=10"
   },
