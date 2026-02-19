@@ -1,0 +1,7 @@
+[network]
+name = "devnet"
+[devnet]
+orchestrator_port = 20443
+[accounts.deployer]
+mnemonic = "fetch outside black test wash cover just actual execute nice door want airport betray quantum stamp fish act pen trust portion fatigue scissor vague"
+balance = 100000000000000
