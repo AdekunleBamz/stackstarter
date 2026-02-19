@@ -135,6 +135,10 @@
 	)
 
 ;; get if a campaign is active
+;; Checks if a campaign is active.
+;; A campaign is active if the block height is less than the target height and the goal hasn't been reached.
+;; @param campaign-id: The ID of the campaign
+;; @returns (ok bool)
 (define-read-only (get-is-active-campaign (campaign-id uint))
 	(let (
 		(campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) (ok false)))
@@ -169,6 +173,13 @@
 ;; there is a single source of truth.
 ;; a fundraiser should set a campaign name, description, goal in mSTX,
 ;; and duration in blocks.
+;; Creates a new crowdfunding campaign.
+;; @param name: The name of the campaign
+;; @param description: A short description
+;; @param link: A URL link
+;; @param goal: The funding goal in uSTX
+;; @param duration: The duration in blocks
+;; @returns (ok uint) with the new campaign ID
 (define-public (create-campaign (name (buff 64)) (description (buff 280)) (link (buff 150)) (goal uint) (duration uint))
 	(let ((campaign-id (+ (var-get campaign-id-nonce) u1)))
 		(if (and
@@ -220,6 +231,13 @@
 
 ;; adds a funding tier to the campaign
 ;; owner only
+;; Adds a funding tier to an existing campaign.
+;; Only the campaign owner can add tiers.
+;; @param campaign-id: The ID of the campaign
+;; @param name: The name of the tier
+;; @param description: Description of the tier
+;; @param cost: Minimum contribution cost for this tier
+;; @returns (ok uint) with the new tier ID
 (define-public (add-tier (campaign-id uint) (name (buff 32)) (description (buff 200)) (cost uint))
 	(let ((campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) error-campaign-does-not-exist)))
 		(asserts! (is-eq (get fundraiser campaign) tx-sender) error-not-owner)
@@ -248,6 +266,12 @@
 
 ;; invest in a campaign
 ;; transfers stx from tx-sender to the contract
+;; Investments in a campaign tier.
+;; Transfers STX from the sender to the contract.
+;; @param campaign-id: The ID of the campaign
+;; @param tier-id: The ID of the tier
+;; @param amount: The amount to invest (must be >= tier cost)
+;; @returns (ok uint) status (u2 if funded, u1 if not yet funded)
 (define-public (invest (campaign-id uint) (tier-id uint) (amount uint))
 	(let (
 		(campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) error-campaign-does-not-exist))
@@ -352,6 +376,10 @@
 ;; only works if the goal was reached within the specified duration
 ;; TODO: allow other senders to trigger the stx transfer to the fundraiser?
 ;; TODO: transfer optional collection fee to contract-owner
+;; Collects the funds for a successful campaign.
+;; Only the fundraiser can collect, and only if the goal is reached.
+;; @param campaign-id: The ID of the campaign
+;; @returns (ok u1) if successful
 (define-public (collect (campaign-id uint))
 	(let (
 		(campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) error-campaign-does-not-exist))
