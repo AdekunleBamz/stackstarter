@@ -92,3 +92,19 @@ npm test test/0-stackstarter.js
 One can query the contract balance [using the local node](http://127.0.0.1:20443/v2/accounts/ST2ZRX0K27GW0SP3GJCEMHD95TQGJMKB7G9Y0X1MH.stackstarter?proof=0). Be sure to restart the mocknet node if you want to rerun the tests.
 
 Since the tests rely on mocknet, they have to wait for blocks to be mined. It means that tests are slow and time-sensitive. Sit back and relax.
+## Development with Clarinet
+
+This project has been updated to support [Clarinet](https://github.com/hirosystems/clarinet).
+
+### Running Tests
+
+```bash
+clarinet test
+```
+
+### Check Contract
+
+```bash
+clarinet check
+```
+
