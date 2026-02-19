@@ -35,63 +35,63 @@
 ;; (define-data-var contract-owner-collection-fee u0)
 
 ;; campaign information map
-(define-map campaigns ((campaign-id uint))
-	(
-		(name (buff 64))			;; human-readable campaign name
-		(fundraiser principal)		;; the address that is fundraising (could be a contract?)
-		(goal uint)					;; funding goal
-		(target-block-height uint)	;; target block height
-	))
+(define-map campaigns {campaign-id: uint}
+	{
+		name: (buff 64),
+		fundraiser: principal,
+		goal: uint,
+		target-block-height: uint
+	})
 
 ;; campaign information
 ;; could at some point be moved to Gaia
-(define-map campaign-information ((campaign-id uint))
-	(
-		(description (buff 280))	;; campaign short description
-		(link (buff 150))			;; campaign URL
-	))
+(define-map campaign-information {campaign-id: uint}
+	{
+		description: (buff 280),
+		link: (buff 150)
+	})
 
 ;; campaign aggregates
-(define-map campaign-totals ((campaign-id uint))
-	(
-		(total-investment uint)
-		(total-investors uint)
-	))
+(define-map campaign-totals {campaign-id: uint}
+	{
+		total-investment: uint,
+		total-investors: uint
+	})
 
 ;; campaign status, whether the target was reached and at what block height
-(define-map campaign-status ((campaign-id uint))
-	(
-		(target-reached bool)		;; was the target reached?
-		(target-reached-height uint);; block-height when it was reached
-		(funded bool)				;; did the fundraiser collect the funds?
-	))
+(define-map campaign-status {campaign-id: uint}
+	{
+		target-reached: bool,
+		target-reached-height: uint,
+		funded: bool
+	})
 
 ;; tier ID nonce per campaign
-(define-map tier-id-nonce ((campaign-id uint))
-	(
-		(nonce uint)
-	))
+(define-map tier-id-nonce {campaign-id: uint}
+	{
+		nonce: uint
+	})
 
 ;; fundraising tiers per campaign
-(define-map tiers ((campaign-id uint) (tier-id uint))
-	(
-		(name (buff 32))			;; human-readable tier name
-		(description (buff 200))	;; tier short description
-		(cost uint)					;; tier minimum pledge cost
-	))
+(define-map tiers {campaign-id: uint, tier-id: uint}
+	{
+		name: (buff 32),
+		description: (buff 200),
+		cost: uint
+	})
 
 ;; tier aggregates
-(define-map tier-totals ((campaign-id uint) (tier-id uint))
-	(
-		(total-investment uint)
-		(total-investors uint)
-	))
+(define-map tier-totals {campaign-id: uint, tier-id: uint}
+	{
+		total-investment: uint,
+		total-investors: uint
+	})
 
 ;; tier investment by principal
-(define-map tier-investments ((campaign-id uint) (tier-id uint) (investor principal))
-	(
-		(amount uint)
-	))
+(define-map tier-investments {campaign-id: uint, tier-id: uint, investor: principal}
+	{
+		amount: uint
+	})
 
 ;; get the campaign ID nonce
 (define-read-only (get-campaign-id-nonce)
@@ -115,29 +115,29 @@
 
 ;; get campaign
 (define-read-only (get-campaign (campaign-id uint))
-	(ok (map-get? campaigns ((campaign-id campaign-id))))
+	(ok (map-get? campaigns {campaign-id: campaign-id}))
 	)
 
 ;; get campaign information
 (define-read-only (get-campaign-information (campaign-id uint))
-	(ok (map-get? campaign-information ((campaign-id campaign-id))))
+	(ok (map-get? campaign-information {campaign-id: campaign-id}))
 	)
 
 ;; get campaign totals
 (define-read-only (get-campaign-totals (campaign-id uint))
-	(ok (map-get? campaign-totals ((campaign-id campaign-id))))
+	(ok (map-get? campaign-totals {campaign-id: campaign-id}))
 	)
 
 ;; get campaign status
 (define-read-only (get-campaign-status (campaign-id uint))
-	(ok (map-get? campaign-status ((campaign-id campaign-id))))
+	(ok (map-get? campaign-status {campaign-id: campaign-id}))
 	)
 
 ;; get if a campaign is active
 (define-read-only (get-is-active-campaign (campaign-id uint))
 	(let (
-		(campaign (unwrap! (map-get? campaigns ((campaign-id campaign-id))) (ok false)))
-		(status (unwrap! (map-get? campaign-status ((campaign-id campaign-id))) (ok false)))
+		(campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) (ok false)))
+		(status (unwrap! (map-get? campaign-status {campaign-id: campaign-id}) (ok false)))
 		)
 		(ok (and (< block-height (get target-block-height campaign)) (not (get target-reached status))))
 		)
@@ -145,22 +145,22 @@
 
 ;; get campaign tier ID nonce
 (define-read-only (get-campaign-tier-nonce (campaign-id uint))
-	(ok (default-to u0 (get nonce (map-get? tier-id-nonce ((campaign-id campaign-id))))))
+	(ok (default-to u0 (get nonce (map-get? tier-id-nonce {campaign-id: campaign-id}))))
 	)
 
 ;; get campaign tier information
 (define-read-only (get-campaign-tier (campaign-id uint) (tier-id uint))
-	(ok (map-get? tiers ((campaign-id campaign-id) (tier-id tier-id))))
+	(ok (map-get? tiers {campaign-id: campaign-id, tier-id: tier-id}))
 	)
 
 ;; get campaign tier totals
 (define-read-only (get-campaign-tier-totals (campaign-id uint) (tier-id uint))
-	(ok (map-get? tier-totals ((campaign-id campaign-id) (tier-id tier-id))))
+	(ok (map-get? tier-totals {campaign-id: campaign-id, tier-id: tier-id}))
 	)
 
 ;; get the campaign tier invested amount for a principal
 (define-read-only (get-campaign-tier-investment-amount (campaign-id uint) (tier-id uint) (investor principal))
-	(ok (default-to u0 (get amount (map-get? tier-investments ((campaign-id campaign-id) (tier-id tier-id) (investor investor))))))
+	(ok (default-to u0 (get amount (map-get? tier-investments {campaign-id: campaign-id, tier-id: tier-id, investor: investor}))))
 	)
 
 ;; create a new campaign for fundraising
@@ -171,29 +171,29 @@
 (define-public (create-campaign (name (buff 64)) (description (buff 280)) (link (buff 150)) (goal uint) (duration uint))
 	(let ((campaign-id (+ (var-get campaign-id-nonce) u1)))
 		(if (and
-				(map-set campaigns ((campaign-id campaign-id))
-					(
-						(name name)
-						(fundraiser tx-sender)
-						(goal goal)
-						(target-block-height (+ duration block-height))
-					))
-				(map-set campaign-information ((campaign-id campaign-id))
-					(
-						(description description)
-						(link link)
-					))
-				(map-set campaign-totals ((campaign-id campaign-id))
-					(
-						(total-investment u0)
-						(total-investors u0)
-					))
-				(map-set campaign-status ((campaign-id campaign-id))
-					(
-						(target-reached false)
-						(target-reached-height u0)
-						(funded false)
-					))
+				(map-set campaigns {campaign-id: campaign-id}
+					{
+						name: name,
+						fundraiser: tx-sender,
+						goal: goal,
+						target-block-height: (+ duration block-height)
+					})
+				(map-set campaign-information {campaign-id: campaign-id}
+					{
+						description: description,
+						link: link
+					})
+				(map-set campaign-totals {campaign-id: campaign-id}
+					{
+						total-investment: u0,
+						total-investors: u0
+					})
+				(map-set campaign-status {campaign-id: campaign-id}
+					{
+						target-reached: false,
+						target-reached-height: u0,
+						funded: false
+					})
 				)
 			(begin
 				(var-set campaign-id-nonce campaign-id)
@@ -206,13 +206,13 @@
 ;; updates campaign information (description and link)
 ;; owner only
 (define-public (update-campaign-information (campaign-id uint) (description (buff 280)) (link (buff 150)))
-	(let ((campaign (unwrap! (map-get? campaigns ((campaign-id campaign-id))) error-campaign-does-not-exist)))
+	(let ((campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) error-campaign-does-not-exist)))
 		(asserts! (is-eq (get fundraiser campaign) tx-sender) error-not-owner)
-		(map-set campaign-information ((campaign-id campaign-id))
-			(
-				(description description)
-				(link link)
-			))
+		(map-set campaign-information {campaign-id: campaign-id}
+			{
+				description: description,
+				link: link
+			})
 		(ok u1)
 		)
 	)
@@ -220,24 +220,24 @@
 ;; adds a funding tier to the campaign
 ;; owner only
 (define-public (add-tier (campaign-id uint) (name (buff 32)) (description (buff 200)) (cost uint))
-	(let ((campaign (unwrap! (map-get? campaigns ((campaign-id campaign-id))) error-campaign-does-not-exist)))
+	(let ((campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) error-campaign-does-not-exist)))
 		(asserts! (is-eq (get fundraiser campaign) tx-sender) error-not-owner)
 		(let ((tier-id (+ (unwrap-panic (get-campaign-tier-nonce campaign-id)) u1)))
 			(if (and
-					(map-set tiers ((campaign-id campaign-id) (tier-id tier-id))
-						(
-							(name name)
-							(description description)
-							(cost cost)
-						))
-					(map-set tier-totals ((campaign-id campaign-id) (tier-id tier-id))
-						(
-							(total-investment u0)
-							(total-investors u0)
-						))
+					(map-set tiers {campaign-id: campaign-id, tier-id: tier-id}
+						{
+							name: name,
+							description: description,
+							cost: cost
+						})
+					(map-set tier-totals {campaign-id: campaign-id, tier-id: tier-id}
+						{
+							total-investment: u0,
+							total-investors: u0
+						})
 					)
 				(begin
-					(map-set tier-id-nonce ((campaign-id campaign-id)) ((nonce tier-id)))
+					(map-set tier-id-nonce {campaign-id: campaign-id} {nonce: tier-id})
 					(ok tier-id))
 				error-general ;; else
 				)
@@ -249,12 +249,12 @@
 ;; transfers stx from tx-sender to the contract
 (define-public (invest (campaign-id uint) (tier-id uint) (amount uint))
 	(let (
-		(campaign (unwrap! (map-get? campaigns ((campaign-id campaign-id))) error-campaign-does-not-exist))
-		(status (unwrap-panic (map-get? campaign-status ((campaign-id campaign-id)))))
-		(total (unwrap-panic (map-get? campaign-totals ((campaign-id campaign-id)))))
-		(tier (unwrap-panic (map-get? tiers ((campaign-id campaign-id) (tier-id tier-id)))))
-		(tier-total (unwrap-panic (map-get? tier-totals ((campaign-id campaign-id) (tier-id tier-id)))))
-		(prior-investment (default-to u0 (get amount (map-get? tier-investments ((campaign-id campaign-id) (tier-id tier-id) (investor tx-sender))))))
+		(campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) error-campaign-does-not-exist))
+		(status (unwrap-panic (map-get? campaign-status {campaign-id: campaign-id})))
+		(total (unwrap-panic (map-get? campaign-totals {campaign-id: campaign-id})))
+		(tier (unwrap-panic (map-get? tiers {campaign-id: campaign-id, tier-id: tier-id})))
+		(tier-total (unwrap-panic (map-get? tier-totals {campaign-id: campaign-id, tier-id: tier-id})))
+		(prior-investment (default-to u0 (get amount (map-get? tier-investments {campaign-id: campaign-id, tier-id: tier-id, investor: tx-sender}))))
 		)
 		(asserts! (and (< block-height (get target-block-height campaign)) (not (get target-reached status))) error-campaign-inactive)
 		(asserts! (>= amount (get cost tier)) error-invest-amount-insufficient)
@@ -264,32 +264,32 @@
 			(new-tier-total (+ (get total-investment tier-total) amount))
 			)
 			(if (and
-					(map-set campaign-totals ((campaign-id campaign-id))
-						(
-							(total-investment new-campaign-total)
-							(total-investors (if (> prior-investment u0) (get total-investors total) (+ (get total-investors total) u1)))
-						))
-					(map-set tier-totals ((campaign-id campaign-id) (tier-id tier-id))
-						(
-							(total-investment new-tier-total)
-							(total-investors (if (> prior-investment u0) (get total-investors tier-total) (+ (get total-investors tier-total) u1)))
-						))
-					(map-set tier-investments ((campaign-id campaign-id) (tier-id tier-id) (investor tx-sender))
-						(
-							(amount (+ prior-investment amount))
-						))
+					(map-set campaign-totals {campaign-id: campaign-id}
+						{
+							total-investment: new-campaign-total,
+							total-investors: (if (> prior-investment u0) (get total-investors total) (+ (get total-investors total) u1))
+						})
+					(map-set tier-totals {campaign-id: campaign-id, tier-id: tier-id}
+						{
+							total-investment: new-tier-total,
+							total-investors: (if (> prior-investment u0) (get total-investors tier-total) (+ (get total-investors tier-total) u1))
+						})
+					(map-set tier-investments {campaign-id: campaign-id, tier-id: tier-id, investor: tx-sender}
+						{
+							amount: (+ prior-investment amount)
+						})
 					)
 				(begin
 					(var-set total-investments (+ (var-get total-investments) u1))
 					(var-set total-investment-value (+ (var-get total-investment-value) amount))
 					(if (>= new-campaign-total (get goal campaign))
 						(begin
-							(map-set campaign-status ((campaign-id campaign-id))
-								(
-									(target-reached true)
-									(target-reached-height block-height)
-									(funded false)
-								))
+							(map-set campaign-status {campaign-id: campaign-id}
+								{
+									target-reached: true,
+									target-reached-height: block-height,
+									funded: false
+								})
 							(var-set total-campaigns-funded (+ (var-get total-campaigns-funded) u1))
 							(ok u2) ;; funded and target reached
 							)
@@ -307,12 +307,12 @@
 ;; transfers stx from the contract to the tx-sender
 (define-public (refund (campaign-id uint) (tier-id uint))
 	(let (
-		(campaign (unwrap! (map-get? campaigns ((campaign-id campaign-id))) error-campaign-does-not-exist))
-		(status (unwrap-panic (map-get? campaign-status ((campaign-id campaign-id)))))
-		(total (unwrap-panic (map-get? campaign-totals ((campaign-id campaign-id)))))
-		(tier (unwrap-panic (map-get? tiers ((campaign-id campaign-id) (tier-id tier-id)))))
-		(tier-total (unwrap-panic (map-get? tier-totals ((campaign-id campaign-id) (tier-id tier-id)))))
-		(prior-investment (default-to u0 (get amount (map-get? tier-investments ((campaign-id campaign-id) (tier-id tier-id) (investor tx-sender))))))
+		(campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) error-campaign-does-not-exist))
+		(status (unwrap-panic (map-get? campaign-status {campaign-id: campaign-id})))
+		(total (unwrap-panic (map-get? campaign-totals {campaign-id: campaign-id})))
+		(tier (unwrap-panic (map-get? tiers {campaign-id: campaign-id, tier-id: tier-id})))
+		(tier-total (unwrap-panic (map-get? tier-totals {campaign-id: campaign-id, tier-id: tier-id})))
+		(prior-investment (default-to u0 (get amount (map-get? tier-investments {campaign-id: campaign-id, tier-id: tier-id, investor: tx-sender}))))
 		(original-tx-sender tx-sender)
 		)
 		(asserts! (not (get target-reached status)) error-campaign-already-funded)
@@ -323,17 +323,17 @@
 			(new-tier-total (- (get total-investment tier-total) prior-investment))
 			)
 			(if (and
-					(map-set campaign-totals ((campaign-id campaign-id))
-						(
-							(total-investment new-campaign-total)
-							(total-investors (- (get total-investors total) u1))
-						))
-					(map-set tier-totals ((campaign-id campaign-id) (tier-id tier-id))
-						(
-							(total-investment new-tier-total)
-							(total-investors (- (get total-investors tier-total) u1))
-						))
-					(map-delete tier-investments ((campaign-id campaign-id) (tier-id tier-id) (investor tx-sender)))
+					(map-set campaign-totals {campaign-id: campaign-id}
+						{
+							total-investment: new-campaign-total,
+							total-investors: (- (get total-investors total) u1)
+						})
+					(map-set tier-totals {campaign-id: campaign-id, tier-id: tier-id}
+						{
+							total-investment: new-tier-total,
+							total-investors: (- (get total-investors tier-total) u1)
+						})
+					(map-delete tier-investments {campaign-id: campaign-id, tier-id: tier-id, investor: tx-sender})
 					)
 				(begin
 					(var-set total-investments (- (var-get total-investments) u1))
@@ -353,21 +353,21 @@
 ;; TODO: transfer optional collection fee to contract-owner
 (define-public (collect (campaign-id uint))
 	(let (
-		(campaign (unwrap! (map-get? campaigns ((campaign-id campaign-id))) error-campaign-does-not-exist))
-		(status (unwrap-panic (map-get? campaign-status ((campaign-id campaign-id)))))
-		(total (unwrap-panic (map-get? campaign-totals ((campaign-id campaign-id)))))
+		(campaign (unwrap! (map-get? campaigns {campaign-id: campaign-id}) error-campaign-does-not-exist))
+		(status (unwrap-panic (map-get? campaign-status {campaign-id: campaign-id})))
+		(total (unwrap-panic (map-get? campaign-totals {campaign-id: campaign-id})))
 		(original-tx-sender tx-sender)
 		)
 		(asserts! (is-eq (get fundraiser campaign) tx-sender) error-not-owner)
 		(asserts! (not (get funded status)) error-already-funded)
 		(asserts! (get target-reached status) error-target-not-reached)
 		(unwrap! (as-contract (stx-transfer? (get total-investment total) tx-sender original-tx-sender)) error-funding-stx-transfer-failed)
-		(asserts! (map-set campaign-status ((campaign-id campaign-id))
-			(
-				(target-reached true)
-				(target-reached-height (get target-reached-height status))
-				(funded true)
-			)) error-general)
+		(asserts! (map-set campaign-status {campaign-id: campaign-id}
+			{
+				target-reached: true,
+				target-reached-height: (get target-reached-height status),
+				funded: true
+			}) error-general)
 		(ok u1)
 		)
 	)
